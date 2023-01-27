@@ -1,5 +1,21 @@
-FROM oraclelinux:8
+# syntax=docker/dockerfile:1.5-labs
+
+#FROM oraclelinux:8
+FROM rockylinux:8
+
+COPY ./src/startup_scripts/. /dockerstartup
+
+RUN dnf install -y nfs-utils nfs4-acl-tools openssh-server \
+    && dnf clean all
+
+### no need
 #RUN sed -i 's/#PermitRootLogin yes/PermitRootLogin yes/' /etc/ssh/sshd_config
-RUN echo "root:Changeme" | chpasswd
-RUN ssh-keygen -A
-CMD ["/usr/sbin/sshd","-D"]
+
+RUN mkdir -p /run/sshd \
+    && ssh-keygen -A \
+    && echo "root:Changeme" | chpasswd \
+    && chmod u+x /dockerstartup/*.sh
+RUN mkdir -p /mnt/nfs_shares
+RUN --security=insecure mount 192.168.31.45:/mnt/nfs_shares /mnt/nfs_shares
+
+ENTRYPOINT ["/dockerstartup/init_startup.sh", "/dockerstartup/sleep_startup.sh"]
