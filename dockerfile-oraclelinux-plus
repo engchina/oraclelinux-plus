@@ -1,0 +1,5 @@
+FROM oraclelinux:8
+#RUN sed -i 's/#PermitRootLogin yes/PermitRootLogin yes/' /etc/ssh/sshd_config
+RUN echo "root:Changeme" | chpasswd
+RUN ssh-keygen -A
+CMD ["/usr/sbin/sshd","-D"]
